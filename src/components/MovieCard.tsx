@@ -26,7 +26,7 @@ export function MovieCard({
           loading="lazy"
           className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-linear-to-t from-background via-background/25 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-background/90 via-transparent to-transparent" />
         <span className="shadow-neon absolute left-3 top-3 rounded-full border border-neon/50 bg-background/70 px-2.5 py-1 text-xs font-semibold text-neon backdrop-blur-md">
           {movie.match}% Vibe Match
         </span>
