@@ -17,7 +17,7 @@ export function MovieDetailDialog({
     <Dialog open={Boolean(movie)} onOpenChange={onOpenChange}>
       <DialogContent className="glass-panel max-h-[90vh] overflow-y-auto rounded-3xl border-primary/25 p-0 sm:max-w-3xl">
         {movie && (
-          <div className="grid gap-0 sm:grid-cols-[minmax(0,240px)_1fr]">
+          <div className="grid gap-0 sm:grid-cols-[240px_minmax(0,1fr)]">
             <div className="relative aspect-2/3 overflow-hidden sm:aspect-auto sm:h-full">
               <img
                 src={movie.poster_url}
