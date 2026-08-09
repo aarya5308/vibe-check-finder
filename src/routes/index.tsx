@@ -1,25 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Loader2, Search, Sparkles, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Film, Search, Shuffle, Sparkles, TrendingUp } from "lucide-react";
 
+import { MovieCard } from "@/components/MovieCard";
+import { MovieDetailDialog } from "@/components/MovieDetailDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { fetchMovies, GENRES, MOODS, type Movie } from "@/lib/api";
+import {
+  GENRES,
+  MOODS,
+  SURPRISE_VIBES,
+  searchMovies,
+  trendingMovies,
+  type ScoredMovie,
+} from "@/lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "VibeCheck — Find Movies by Mood or Genre" },
+      { title: "CineVibe AI — Cinematic Movie Discovery by Vibe" },
       {
         name: "description",
         content:
-          "Describe your vibe or pick any genre and VibeCheck recommends acclaimed movies that match — cozy, high energy, melancholy, mind-bending, romantic or dark and thrilling.",
+          "CineVibe AI reads your mood and surfaces acclaimed films across sci-fi, noir, anime, horror, romance and more — with vibe match scores and streaming picks.",
       },
-      { property: "og:title", content: "VibeCheck — Find Movies by Mood or Genre" },
+      { property: "og:title", content: "CineVibe AI — Cinematic Movie Discovery by Vibe" },
       {
         property: "og:description",
-        content: "Mood-first movie discovery with custom genre filters. Pick a vibe, get the watchlist.",
+        content:
+          "Describe a mood, a keyword, or any genre. CineVibe AI returns a curated, vibe-matched watchlist.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -28,85 +37,136 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+const LOADING_STEPS = [
+  "Synthesizing mood parameters...",
+  "Scanning cinematic universe...",
+  "Ranking vibe matches...",
+];
+
 function Index() {
   const [query, setQuery] = useState("");
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<Movie[] | null>(null);
+  const [step, setStep] = useState(0);
+  const [results, setResults] = useState<ScoredMovie[]>(() => trendingMovies());
+  const [fallback, setFallback] = useState(true);
+  const [heading, setHeading] = useState("Trending in the cinematic universe");
+  const [selected, setSelected] = useState<ScoredMovie | null>(null);
 
-  async function runSearch(vibe: string) {
-    if (!vibe.trim()) return;
+  useEffect(() => {
+    if (!loading) return;
+    setStep(0);
+    const timer = setInterval(() => setStep((s) => (s + 1) % LOADING_STEPS.length), 450);
+    return () => clearInterval(timer);
+  }, [loading]);
+
+  async function runSearch(term: string, filter: string | null) {
+    setActiveFilter(filter);
     setLoading(true);
-    setResults(null);
-    const movies = await fetchMovies(vibe);
-    setResults(movies);
+    const result = await searchMovies(term);
+    setResults(result.movies);
+    setFallback(result.fallback);
+    setHeading(
+      result.fallback
+        ? "No exact match — here's what's trending instead"
+        : `${result.movies.length} films tuned to "${result.query}"`,
+    );
     setLoading(false);
   }
 
+  function surpriseMe() {
+    const vibe = SURPRISE_VIBES[Math.floor(Math.random() * SURPRISE_VIBES.length)]!;
+    setQuery(vibe);
+    runSearch(vibe, null);
+  }
+
   return (
-    <main className="min-h-screen bg-background bg-hero-glow font-sans">
-      <div className="mx-auto w-full max-w-6xl px-5 pb-24 pt-16 sm:pt-24">
-        <header className="text-center">
-          <h1 className="text-glow font-display text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
-            🎬 VibeCheck
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Find movies based on your mood or search any custom genre.
-          </p>
-        </header>
-
-        <form
-          className="mx-auto mt-10 flex w-full max-w-2xl flex-col gap-3 sm:flex-row"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSelectedMood(null);
-            setSelectedGenre(null);
-            runSearch(query);
-          }}
-        >
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Describe your vibe or current mood..."
-              aria-label="Describe your vibe or current mood"
-              className="h-13 rounded-2xl border-border/70 bg-card/70 pl-11 text-base backdrop-blur placeholder:text-muted-foreground/70 focus-visible:ring-primary"
-            />
+    <div className="bg-ambient min-h-screen bg-background font-sans">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/60 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 py-3.5 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <span className="shadow-glow grid size-9 place-items-center rounded-2xl bg-primary/15 text-primary">
+              <Film className="size-4.5" />
+            </span>
+            <span className="text-glow font-display text-lg font-bold tracking-tight text-foreground">
+              CineVibe AI
+            </span>
           </div>
-          <Button
-            type="submit"
-            disabled={loading}
-            className="shadow-glow h-13 rounded-2xl px-7 text-base font-semibold transition-transform hover:scale-[1.02]"
-          >
-            <Sparkles className="size-4" />
-            Find Movies
-          </Button>
-        </form>
 
-        <section aria-label="Genres" className="mx-auto mt-8 w-full max-w-3xl">
-          <h2 className="text-center text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Or pick a genre
-          </h2>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <span className="glass-panel ml-auto inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-medium text-muted-foreground sm:text-xs">
+            <span className="relative grid size-2 place-items-center">
+              <span className="animate-pulse-ring absolute size-2 rounded-full bg-neon" />
+              <span className="size-1.5 rounded-full bg-neon" />
+            </span>
+            AI Cinematic Engine Active
+          </span>
+
+          <Button
+            variant="outline"
+            onClick={surpriseMe}
+            disabled={loading}
+            className="rounded-full border-primary/40 bg-card/40 backdrop-blur transition-transform hover:scale-105 hover:border-primary"
+          >
+            <Shuffle className="size-4" />
+            Surprise Me
+          </Button>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-7xl px-4 pb-24 pt-12 sm:px-6 sm:pt-20">
+        <section className="text-center">
+          <h1 className="text-glow mx-auto max-w-4xl font-display text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+            Watch what matches
+            <span className="block text-primary">your exact vibe.</span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
+            Describe a feeling, a keyword, or any genre — the engine scores 40+ acclaimed films
+            against your mood in real time.
+          </p>
+
+          <form
+            className="group mx-auto mt-10 flex w-full max-w-2xl flex-col gap-3 sm:flex-row"
+            onSubmit={(e) => {
+              e.preventDefault();
+              runSearch(query, null);
+            }}
+          >
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Describe your vibe: rainy neon loneliness, space, laugh..."
+                aria-label="Describe your vibe"
+                className="glass-panel h-14 rounded-2xl pl-11 text-base transition-shadow duration-300 placeholder:text-muted-foreground/70 focus-visible:shadow-glow focus-visible:ring-primary"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="shadow-glow h-14 rounded-2xl px-8 text-base font-semibold transition-transform hover:scale-[1.03]"
+            >
+              <Sparkles className="size-4" />
+              Find Movies
+            </Button>
+          </form>
+
+          <div className="mx-auto mt-8 flex max-w-4xl flex-wrap justify-center gap-2">
             {GENRES.map((genre) => {
-              const active = selectedGenre === genre;
+              const active = activeFilter === genre;
               return (
                 <button
                   key={genre}
                   type="button"
                   aria-pressed={active}
                   onClick={() => {
-                    setSelectedGenre(genre);
-                    setSelectedMood(null);
-                    setQuery("");
-                    runSearch(genre);
+                    setQuery(genre);
+                    runSearch(genre, genre);
                   }}
-                  className={`rounded-full border px-4 py-2 text-sm transition-all duration-300 ${
+                  className={`rounded-full border px-4 py-2 text-sm transition-all duration-300 hover:scale-105 ${
                     active
                       ? "shadow-neon border-neon/60 text-foreground"
-                      : "border-border/70 bg-card/50 text-muted-foreground hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground"
+                      : "border-border/70 bg-card/40 text-muted-foreground backdrop-blur hover:border-primary/50 hover:text-foreground"
                   }`}
                 >
                   {genre}
@@ -117,32 +177,28 @@ function Index() {
         </section>
 
         <section aria-label="Moods" className="mt-14">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
             {MOODS.map((mood) => {
-              const active = selectedMood === mood.id;
+              const active = activeFilter === mood.id;
               return (
                 <button
                   key={mood.id}
                   type="button"
                   aria-pressed={active}
                   onClick={() => {
-                    setSelectedMood(mood.id);
-                    setSelectedGenre(null);
-                    setQuery("");
-                    runSearch(mood.id);
+                    setQuery(mood.label);
+                    runSearch(mood.id, mood.id);
                   }}
-                  className={`bg-card-gradient group relative overflow-hidden rounded-3xl border p-6 text-left transition-all duration-300 hover:-translate-y-1 ${
-                    active
-                      ? "shadow-neon border-neon/60"
-                      : "border-border/70 hover:border-primary/50"
+                  className={`glass-panel group relative overflow-hidden rounded-3xl p-5 text-left transition-all duration-300 hover:-translate-y-1 sm:p-6 ${
+                    active ? "shadow-neon border-neon/60" : "hover:border-primary/50"
                   }`}
                 >
-                  <span className="block text-3xl">{mood.emoji}</span>
-                  <span className="mt-4 block font-display text-lg font-semibold text-foreground">
+                  <span className="block text-2xl sm:text-3xl">{mood.emoji}</span>
+                  <span className="mt-3 block font-display text-base font-semibold text-foreground sm:text-lg">
                     {mood.label}
                   </span>
-                  <span className="mt-1 block text-sm text-muted-foreground">
-                    {active ? "Selected vibe" : "Tap to feel it out"}
+                  <span className="mt-1 block text-xs text-muted-foreground sm:text-sm">
+                    {active ? "Tuned in" : "Tap to feel it out"}
                   </span>
                 </button>
               );
@@ -151,77 +207,39 @@ function Index() {
         </section>
 
         <section aria-live="polite" className="mt-16">
-          {loading && (
-            <div className="flex flex-col items-center justify-center gap-4 py-16">
-              <Loader2 className="size-10 animate-spin text-primary" />
-              <p className="font-display text-lg text-muted-foreground">
-                Scanning cinematic vibes...
+          {loading ? (
+            <div className="flex flex-col items-center justify-center gap-5 py-20">
+              <span className="relative grid size-16 place-items-center">
+                <span className="absolute size-16 animate-ping rounded-full border border-primary/40" />
+                <span className="absolute size-12 animate-spin rounded-full border-2 border-transparent border-t-primary border-r-neon" />
+                <Sparkles className="size-5 text-primary" />
+              </span>
+              <p className="font-display text-base text-muted-foreground sm:text-lg">
+                {LOADING_STEPS[step]}
               </p>
             </div>
-          )}
-
-          {!loading && results && results.length === 0 && (
-            <p className="py-12 text-center text-muted-foreground">
-              No matches for that vibe — try another mood card, a genre or different words.
-            </p>
-          )}
-
-          {!loading && results && results.length > 0 && (
+          ) : (
             <>
-              <h2 className="font-display text-2xl font-semibold text-foreground">
-                {results.length} movies for your vibe
+              <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-foreground sm:text-2xl">
+                {fallback && <TrendingUp className="size-5 text-neon" />}
+                {heading}
               </h2>
-              <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {results.map((movie) => (
-                  <article
+              <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {results.map((movie, index) => (
+                  <MovieCard
                     key={movie.id}
-                    className="bg-card-gradient group overflow-hidden rounded-3xl border border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow"
-                  >
-                    <div className="relative aspect-2/3 overflow-hidden">
-                      <img
-                        src={movie.poster_url}
-                        alt={`${movie.title} poster`}
-                        loading="lazy"
-                        className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <Badge className="absolute right-3 top-3 gap-1 rounded-full bg-background/80 text-foreground backdrop-blur">
-                        <Star className="size-3 fill-current text-primary" />
-                        {movie.rating.toFixed(1)}
-                      </Badge>
-                      <Badge
-                        variant="secondary"
-                        className="absolute left-3 top-3 rounded-full backdrop-blur"
-                      >
-                        {movie.genre}
-                      </Badge>
-                    </div>
-                    <div className="p-5">
-                      <h3 className="font-display text-lg font-semibold leading-tight text-foreground">
-                        {movie.title}
-                      </h3>
-                      <p className="mt-1 text-sm text-muted-foreground">{movie.release_year}</p>
-                      <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">
-                        {movie.overview}
-                      </p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {movie.mood_tags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="rounded-full text-xs capitalize"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </article>
+                    movie={movie}
+                    index={index}
+                    onSelect={setSelected}
+                  />
                 ))}
               </div>
             </>
           )}
         </section>
-      </div>
-    </main>
+      </main>
+
+      <MovieDetailDialog movie={selected} onOpenChange={(open) => !open && setSelected(null)} />
+    </div>
   );
 }
