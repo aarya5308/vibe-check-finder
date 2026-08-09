@@ -150,6 +150,47 @@
     0 0 60px color-mix(in oklab, var(--accent) 40%, transparent);
 }
 
+@utility glass-panel {
+  background-color: color-mix(in oklab, var(--card) 55%, transparent);
+  border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+
+@utility bg-ambient {
+  background-image: var(--gradient-hero);
+  background-size: 180% 180%;
+  animation: ambient-drift 22s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-drift {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 40%;
+  }
+  100% {
+    background-position: 20% 100%;
+  }
+}
+
+@keyframes pulse-ring {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+}
+
+@utility animate-pulse-ring {
+  animation: pulse-ring 1.8s ease-in-out infinite;
+}
+
+
 
 .dark {
   --background: oklch(0.129 0.042 264.695);
@@ -195,4 +236,19 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@utility animate-card-rise {
+  animation: card-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
