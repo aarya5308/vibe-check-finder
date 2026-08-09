@@ -17,7 +17,7 @@ export function MovieCard({
       type="button"
       onClick={() => onSelect(movie)}
       style={{ animationDelay: `${Math.min(index, 12) * 60}ms` }}
-      className="glass-panel group animate-fade-in overflow-hidden rounded-3xl text-left opacity-0 transition-all duration-500 [animation-fill-mode:forwards] hover:-translate-y-1.5 hover:border-primary/50 hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="glass-panel group animate-card-rise overflow-hidden rounded-3xl text-left transition-[transform,border-color,box-shadow] duration-500 hover:-translate-y-1.5 hover:border-primary/50 hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       <div className="relative aspect-2/3 overflow-hidden">
         <img

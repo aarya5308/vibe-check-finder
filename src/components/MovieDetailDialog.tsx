@@ -18,14 +18,15 @@ export function MovieDetailDialog({
       <DialogContent className="glass-panel max-h-[90vh] overflow-y-auto rounded-3xl border-primary/25 p-0 sm:max-w-3xl">
         {movie && (
           <div className="grid gap-0 sm:grid-cols-[minmax(0,240px)_1fr]">
-            <div className="relative aspect-2/3 overflow-hidden sm:h-full">
+            <div className="relative aspect-2/3 overflow-hidden sm:aspect-auto sm:h-full">
               <img
                 src={movie.poster_url}
                 alt={`${movie.title} poster`}
                 className="size-full object-cover"
               />
-              <div className="absolute inset-0 bg-linear-to-t from-background/80 to-transparent sm:bg-linear-to-r" />
+              <div className="absolute inset-0 bg-linear-to-t from-background/80 to-transparent sm:bg-linear-to-r sm:from-transparent sm:to-background/70" />
             </div>
+
 
             <div className="p-6 sm:p-8">
               <span className="shadow-neon inline-flex rounded-full border border-neon/50 px-2.5 py-1 text-xs font-semibold text-neon">
