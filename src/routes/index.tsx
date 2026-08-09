@@ -5,22 +5,24 @@ import { Loader2, Search, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { fetchMoviesByVibe, MOODS, type Movie } from "@/lib/api";
+import { fetchMovies, GENRES, MOODS, type Movie } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "VibeCheck — Find Movies by Mood, Not Genre" },
+      { title: "VibeCheck — Find Movies by Mood or Genre" },
       {
         name: "description",
         content:
-          "Describe your vibe and VibeCheck picks the movies that match your mood — cozy, high energy, melancholy, mind-bending, romantic or dark and thrilling.",
+          "Describe your vibe or pick any genre and VibeCheck recommends acclaimed movies that match — cozy, high energy, melancholy, mind-bending, romantic or dark and thrilling.",
       },
-      { property: "og:title", content: "VibeCheck — Find Movies by Mood, Not Genre" },
+      { property: "og:title", content: "VibeCheck — Find Movies by Mood or Genre" },
       {
         property: "og:description",
-        content: "Mood-first movie discovery. Pick a vibe, get the perfect watchlist.",
+        content: "Mood-first movie discovery with custom genre filters. Pick a vibe, get the watchlist.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
@@ -29,6 +31,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [query, setQuery] = useState("");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Movie[] | null>(null);
 
@@ -36,7 +39,7 @@ function Index() {
     if (!vibe.trim()) return;
     setLoading(true);
     setResults(null);
-    const movies = await fetchMoviesByVibe(vibe);
+    const movies = await fetchMovies(vibe);
     setResults(movies);
     setLoading(false);
   }
@@ -49,7 +52,7 @@ function Index() {
             🎬 VibeCheck
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Find movies based on your mood, not boring genres.
+            Find movies based on your mood or search any custom genre.
           </p>
         </header>
 
@@ -58,6 +61,7 @@ function Index() {
           onSubmit={(e) => {
             e.preventDefault();
             setSelectedMood(null);
+            setSelectedGenre(null);
             runSearch(query);
           }}
         >
@@ -81,6 +85,37 @@ function Index() {
           </Button>
         </form>
 
+        <section aria-label="Genres" className="mx-auto mt-8 w-full max-w-3xl">
+          <h2 className="text-center text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            Or pick a genre
+          </h2>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {GENRES.map((genre) => {
+              const active = selectedGenre === genre;
+              return (
+                <button
+                  key={genre}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => {
+                    setSelectedGenre(genre);
+                    setSelectedMood(null);
+                    setQuery("");
+                    runSearch(genre);
+                  }}
+                  className={`rounded-full border px-4 py-2 text-sm transition-all duration-300 ${
+                    active
+                      ? "shadow-neon border-neon/60 text-foreground"
+                      : "border-border/70 bg-card/50 text-muted-foreground hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground"
+                  }`}
+                >
+                  {genre}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
         <section aria-label="Moods" className="mt-14">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {MOODS.map((mood) => {
@@ -92,6 +127,7 @@ function Index() {
                   aria-pressed={active}
                   onClick={() => {
                     setSelectedMood(mood.id);
+                    setSelectedGenre(null);
                     setQuery("");
                     runSearch(mood.id);
                   }}
@@ -119,14 +155,14 @@ function Index() {
             <div className="flex flex-col items-center justify-center gap-4 py-16">
               <Loader2 className="size-10 animate-spin text-primary" />
               <p className="font-display text-lg text-muted-foreground">
-                Analyzing cinematic vibes...
+                Scanning cinematic vibes...
               </p>
             </div>
           )}
 
           {!loading && results && results.length === 0 && (
             <p className="py-12 text-center text-muted-foreground">
-              No matches for that vibe — try another mood card or different words.
+              No matches for that vibe — try another mood card, a genre or different words.
             </p>
           )}
 
@@ -139,7 +175,7 @@ function Index() {
                 {results.map((movie) => (
                   <article
                     key={movie.id}
-                    className="bg-card-gradient group overflow-hidden rounded-3xl border border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50"
+                    className="bg-card-gradient group overflow-hidden rounded-3xl border border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow"
                   >
                     <div className="relative aspect-2/3 overflow-hidden">
                       <img
@@ -151,6 +187,12 @@ function Index() {
                       <Badge className="absolute right-3 top-3 gap-1 rounded-full bg-background/80 text-foreground backdrop-blur">
                         <Star className="size-3 fill-current text-primary" />
                         {movie.rating.toFixed(1)}
+                      </Badge>
+                      <Badge
+                        variant="secondary"
+                        className="absolute left-3 top-3 rounded-full backdrop-blur"
+                      >
+                        {movie.genre}
                       </Badge>
                     </div>
                     <div className="p-5">
