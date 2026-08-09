@@ -61,41 +61,95 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+@theme inline {
+  --color-neon: var(--neon);
+  --color-neon-foreground: var(--neon-foreground);
+  --color-glow: var(--glow);
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --radius: 1rem;
+  --background: oklch(0.16 0.03 275);
+  --foreground: oklch(0.97 0.01 280);
+  --card: oklch(0.21 0.035 278);
+  --card-foreground: oklch(0.97 0.01 280);
+  --popover: oklch(0.21 0.035 278);
+  --popover-foreground: oklch(0.97 0.01 280);
+  --primary: oklch(0.72 0.19 330);
+  --primary-foreground: oklch(0.16 0.03 275);
+  --secondary: oklch(0.27 0.04 278);
+  --secondary-foreground: oklch(0.97 0.01 280);
+  --muted: oklch(0.26 0.035 278);
+  --muted-foreground: oklch(0.72 0.03 285);
+  --accent: oklch(0.78 0.16 195);
+  --accent-foreground: oklch(0.16 0.03 275);
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.98 0.01 280);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.72 0.19 330);
+  --neon: oklch(0.78 0.16 195);
+  --neon-foreground: oklch(0.16 0.03 275);
+  --glow: oklch(0.72 0.19 330);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --sidebar: oklch(0.21 0.035 278);
+  --sidebar-foreground: oklch(0.97 0.01 280);
+  --sidebar-primary: oklch(0.72 0.19 330);
+  --sidebar-primary-foreground: oklch(0.16 0.03 275);
+  --sidebar-accent: oklch(0.27 0.04 278);
+  --sidebar-accent-foreground: oklch(0.97 0.01 280);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.72 0.19 330);
+
+  --gradient-hero: radial-gradient(
+      120% 90% at 15% -10%,
+      color-mix(in oklab, var(--glow) 32%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      100% 80% at 90% 0%,
+      color-mix(in oklab, var(--accent) 26%, transparent),
+      transparent 65%
+    );
+  --gradient-card: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--card) 92%, var(--glow) 8%),
+    var(--card)
+  );
+  --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--glow) 40%, transparent),
+    0 12px 44px -12px color-mix(in oklab, var(--glow) 55%, transparent);
+  --shadow-neon: 0 0 0 1.5px var(--neon),
+    0 0 28px -4px color-mix(in oklab, var(--neon) 65%, transparent),
+    inset 0 0 24px -12px color-mix(in oklab, var(--neon) 70%, transparent);
 }
+
+@utility bg-hero-glow {
+  background-image: var(--gradient-hero);
+}
+
+@utility bg-card-gradient {
+  background-image: var(--gradient-card);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+@utility shadow-neon {
+  box-shadow: var(--shadow-neon);
+}
+
+@utility text-glow {
+  text-shadow: 0 0 24px color-mix(in oklab, var(--glow) 70%, transparent),
+    0 0 60px color-mix(in oklab, var(--accent) 40%, transparent);
+}
+
 
 .dark {
   --background: oklch(0.129 0.042 264.695);
